@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.test import TestCase
 from unittest.mock import patch
 
-from django_cloud_events.sources import get_cloudevent_from_signal
+from .sources import get_cloudevent_from_signal
 import os
 
 from django_fake_model import models as f

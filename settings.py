@@ -1,0 +1,4 @@
+CLOUDEVENTS_ENV = {
+    "SINK": "K_SINK",
+    "SOURCE": "K_SOURCE"
+}
