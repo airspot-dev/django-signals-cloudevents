@@ -1,0 +1,4 @@
+include LICENSE
+include README.rst
+recursive-include django-cloud-events/static *
+recursive-include django-cloud-events/templates *
