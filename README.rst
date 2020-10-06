@@ -1,29 +1,27 @@
 =====
-Polls
+Django signals cloudevents
 =====
 
-Polls is a Django app to conduct Web-based polls. For each question,
-visitors can choose between a fixed number of answers.
-
-Detailed documentation is in the "docs" directory.
-
+This apps allow you to produce Clouevents starting from your models signals sending them to a configurable url (sink).
+This app is mainly intended to transform a Django instance into a Knative source, through a SinkBinding or ContainerSource.
+For more information visit the `Knative eventing documentation <https://knative.dev/docs/eventing/>`_
 Quick start
 -----------
 
-1. Add "polls" to your INSTALLED_APPS setting like this::
+1. Add "django_signals_cloudevents" to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = [
         ...
-        'polls',
+        'django_signals_cloudevents',
     ]
 
-2. Include the polls URLconf in your project urls.py like this::
+2. Register your models like this::
 
-    path('polls/', include('polls.urls')),
+    post_save.connect(send_cloudevent, sender=YourModel)
 
-3. Run ``python manage.py migrate`` to create the polls models.
+3. [Optional] As said previously, by default this app is configured to be used with a SinkBinding and get sink url from the environment variable K_SINK and the source name from K_SOURCE. It is possible to override the chosen env variable in your project settings like this::
 
-4. Start the development server and visit http://127.0.0.1:8000/admin/
-   to create a poll (you'll need the Admin app enabled).
-
-5. Visit http://127.0.0.1:8000/polls/ to participate in the poll.
+    CLOUDEVENTS_ENV = {
+        "SINK": "CUSTOM_SINK",
+        "SOURCE": "CUSTOM_SOURCE"
+    }

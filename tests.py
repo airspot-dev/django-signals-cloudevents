@@ -4,7 +4,7 @@ import json
 from django.db.models.signals import *
 from django.test import TestCase, override_settings
 
-from .sources import send_cloudevent
+from .django_cloudevents import send_cloudevent
 import os
 
 from django_fake_model import models as f
@@ -50,8 +50,8 @@ class MockServerRequestHandler(BaseHTTPRequestHandler):
         request_body = self.rfile.read(content_len)
         m = marshaller.NewHTTPMarshaller([binary.NewBinaryHTTPCloudEventConverter()])
         event = m.FromRequest(v1.Event(), self.headers, io.BytesIO(request_body), lambda x: json.load(x))
-        event_type = event.EventType()
 
+        event_type = event.EventType()
         assert event_type in ALLOWED_EVENT_TYPES
 
         extensions = event.Extensions()
