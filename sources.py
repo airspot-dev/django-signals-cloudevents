@@ -35,13 +35,14 @@ def _get_event_type_from_signal(signal):
 
 
 def send_cloudevent(sender, **kwargs):
-    if os.environ.get("K_SINK") is not None:
+    sink_url = os.environ.get(settings.CLOUDEVENTS_ENV["SINK"])
+    if sink_url is not None:
         event = get_cloudevent_from_signal(sender, **kwargs)
 
         m = marshaller.NewHTTPMarshaller([binary.NewBinaryHTTPCloudEventConverter()])
         headers, body = m.ToRequest(event, converters.TypeBinary, json.dumps)
 
-        response = requests.post(os.environ.get('K_SINK'),
+        response = requests.post(sink_url,
                                  headers=headers,
                                  data=body)
 
@@ -50,33 +51,39 @@ def send_cloudevent(sender, **kwargs):
 
 def get_cloudevent_from_signal(sender, **kwargs):
     event_type = _get_event_type_from_signal(kwargs.pop("signal"))
-    instance = kwargs.pop("instance")
     obj_meta = sender._meta
-    payload = {
-        "signal_kwargs": {
-            **kwargs
-        },
-        "data": {}
-    }
-    for field in obj_meta.fields:
-        field_name = field.name
-        payload["data"][field_name] = str(getattr(instance, field_name))
-    payload["db_table"] = obj_meta.db_table
+
     app = obj_meta.app_label
     model = obj_meta.model_name
+
+    payload = {}
+    if "instance" in kwargs:
+        instance = kwargs.pop("instance")
+        payload["data"] = {}
+        for field in obj_meta.fields:
+            field_name = field.name
+            payload["data"][field_name] = str(getattr(instance, field_name))
+        subject = "DCE:%s.%s/%s" % (app, model, instance.id)
+    else:
+        subject = "DCE:%s.%s" % (app, model)
+    payload["signal_kwargs"] = {
+        **kwargs
+    }
+    payload["db_table"] = obj_meta.db_table
+
     extensions = {
         "djangoapp": app,
         "djangomodel": model,
     }
+
     event_id = str(uuid.uuid4())
     event = v1.Event()
     event.SetContentType('application/json')
     event.SetEventID(event_id)
-    event.SetSource(os.environ.get("CLOUDEVENT_SOURCE", "django-orm"))
-    event.SetSubject("DCE:%s.%s/%s" % (app, model, instance.id))
+    event.SetSource(os.environ.get(settings.CLOUDEVENTS_ENV["SOURCE"], "django-orm"))
+    event.SetSubject(subject)
     event.SetEventTime(datetime.utcnow().replace(tzinfo=pytz.UTC).isoformat())
     event.SetEventType(event_type)
-    # set extended properties
     event.SetExtensions(extensions)
     event.Set('Originid', event_id)
     event.SetData(payload)
