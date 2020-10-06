@@ -2,7 +2,7 @@
 Django signals cloudevents
 =====
 
-This apps allow you to produce Clouevents starting from your models signals sending them to a configurable url (sink).
+This apps allow you to produce `Clouevents <https://cloudevents.io/>`_ starting from your models signals sending them to a configurable url (sink).
 This app is mainly intended to transform a Django instance into a Knative source, through a SinkBinding or ContainerSource.
 For more information visit the `Knative eventing documentation <https://knative.dev/docs/eventing/>`_
 Quick start
