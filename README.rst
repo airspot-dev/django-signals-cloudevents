@@ -20,7 +20,7 @@ Quick start
 
 2. Register your models like this::
 
-    from django_signals_cloudevents.django_cloudevents import send_cloudevent
+    from django_signals_cloudevents import send_cloudevent
 
     post_save.connect(send_cloudevent, sender=YourModel)
 

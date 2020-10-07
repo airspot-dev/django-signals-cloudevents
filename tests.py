@@ -4,7 +4,7 @@ import json
 from django.db.models.signals import *
 from django.test import TestCase, override_settings
 
-from .django_cloudevents import send_cloudevent
+from django_signals_cloudevents import send_cloudevent
 import os
 
 from django_fake_model import models as f
