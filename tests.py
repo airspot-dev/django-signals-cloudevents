@@ -103,8 +103,8 @@ def get_free_port():
 
 @override_settings(
     CLOUDEVENTS_ENV={
-        "SINK": "MOCK_SINK",
-        "SOURCE": "TEST_SOURCE"
+        "SINK_VAR": "MOCK_SINK",
+        "SOURCE_VAR": "TEST_SOURCE"
     }
 )
 class SourceTestCase(TestCase):

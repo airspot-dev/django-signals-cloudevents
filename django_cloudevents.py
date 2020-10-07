@@ -35,7 +35,7 @@ def _get_event_type_from_signal(signal):
 
 
 def send_cloudevent(sender, **kwargs):
-    sink_url = os.environ.get(settings.CLOUDEVENTS_ENV["SINK"])
+    sink_url = os.environ.get(settings.CLOUDEVENTS_ENV["SINK_VAR"])
     if sink_url is not None:
         event = get_cloudevent_from_signal(sender, **kwargs)
 
@@ -80,7 +80,7 @@ def get_cloudevent_from_signal(sender, **kwargs):
     event = v1.Event()
     event.SetContentType('application/json')
     event.SetEventID(event_id)
-    event.SetSource(os.environ.get(settings.CLOUDEVENTS_ENV["SOURCE"], "django-orm"))
+    event.SetSource(os.environ.get(settings.CLOUDEVENTS_ENV["SOURCE_VAR"], "django-orm"))
     event.SetSubject(subject)
     event.SetEventTime(datetime.utcnow().replace(tzinfo=pytz.UTC).isoformat())
     event.SetEventType(event_type)

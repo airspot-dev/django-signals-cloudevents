@@ -17,8 +17,8 @@ setuptools.setup(
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
+        "Framework :: Django",
     ],
     install_requires=[
     ],
@@ -26,4 +26,5 @@ setuptools.setup(
         'django-fake-model==0.1.4',
     ],
     python_requires='>=3.6',
+    keywords='cloudevents knative eventing krules'
 )
