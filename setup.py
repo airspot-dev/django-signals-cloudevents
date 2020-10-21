@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="django-signals-cloudevents",
-    version="0.1.1",
+    version="0.1.2",
     author="Airspot S.r.l.",
     author_email="info@airspot.tech",
     description="App to produce Cloudevents from Django model signals",
