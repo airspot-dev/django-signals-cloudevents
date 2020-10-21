@@ -1,2 +1,6 @@
 **/*.pyc
 __pycache__/*
+dist/
+build/
+django_signals_cloudevents.egg-info/
+.DS_Store

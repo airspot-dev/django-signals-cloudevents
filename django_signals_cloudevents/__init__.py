@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pytz
 import requests
+from django.db.models import ManyToOneRel
 from django.db.models.signals import *
 from cloudevents.sdk import converters
 from cloudevents.sdk import marshaller
@@ -15,23 +16,37 @@ from django.conf import settings
 
 def _get_event_type_from_signal(signal):
     if signal == pre_init:
-        return "django.orm.pre.init"
+        return "django.orm.pre_init"
     elif signal == post_init:
-        return "django.orm.post.init"
+        return "django.orm.post_init"
     elif signal == pre_save:
-        return "django.orm.pre.save"
+        return "django.orm.pre_save"
     elif signal == post_save:
-        return "django.orm.post.save"
+        return "django.orm.post_save"
     elif signal == m2m_changed:
-        return "django.orm.m2m.change"
+        return "django.orm.m2m_change"
     elif signal == pre_delete:
-        return "django.orm.pre.delete"
+        return "django.orm.pre_delete"
     elif signal == post_delete:
-        return "django.orm.post.delete"
+        return "django.orm.post_delete"
     elif signal == pre_migrate:
-        return "django.orm.pre.migrate"
+        return "django.orm.pre_migrate"
     elif signal == post_migrate:
-        return "django.orm.post.migrate"
+        return "django.orm.post_migrate"
+
+
+def _get_instance_dict(instance):
+    instance_dict = {}
+    for field in instance._meta.get_fields():
+        field_name = field.name
+        if isinstance(field, ManyToOneRel):
+            field_name = field.related_name or "%s_set" % field_name
+            instance_dict[field_name] = []
+            for rel in getattr(instance, field_name).all():
+                instance_dict[field_name].append(_get_instance_dict(rel))
+        else:
+            instance_dict[field_name] = str(getattr(instance, field_name))
+    return instance_dict
 
 
 def send_cloudevent(sender, **kwargs):
@@ -52,7 +67,6 @@ def send_cloudevent(sender, **kwargs):
 def get_cloudevent_from_signal(sender, **kwargs):
     event_type = _get_event_type_from_signal(kwargs.pop("signal"))
     obj_meta = sender._meta
-
     app = obj_meta.app_label
     model = obj_meta.model_name
 
@@ -60,9 +74,20 @@ def get_cloudevent_from_signal(sender, **kwargs):
     if "instance" in kwargs:
         instance = kwargs.pop("instance")
         payload["data"] = {}
-        for field in obj_meta.fields:
-            field_name = field.name
-            payload["data"][field_name] = str(getattr(instance, field_name))
+        if type(instance) != sender:  # m2m signal
+            obj_meta = instance._meta
+            model = instance._meta.model_name
+            kwargs["model"] = kwargs["model"]._meta.model_name
+            kwargs["updated_pks"] = list(kwargs.pop("pk_set"))
+        payload["data"] = _get_instance_dict(instance)
+        for m_field in obj_meta.many_to_many:
+            field_name = m_field.name
+            m2m_data = []
+            for m2m_obj in getattr(instance, field_name).all():
+                m2m_data.append(_get_instance_dict(m2m_obj))
+            payload["data"][field_name] = m2m_data
+        # TODO parse related_fields
+        # for r_field in obj_meta.related_objects:
         subject = "DCE:%s.%s/%s" % (app, model, instance.id)
     else:
         subject = "DCE:%s.%s" % (app, model)

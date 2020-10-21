@@ -19,15 +19,15 @@ from cloudevents.sdk.converters import binary
 from cloudevents.sdk.event import v1
 
 ALLOWED_EVENT_TYPES = (
-    "django.orm.pre.init",
-    "django.orm.post.init",
-    "django.orm.pre.save",
-    "django.orm.post.save",
-    "django.orm.m2m.change",
-    "django.orm.pre.delete",
-    "django.orm.post.delete",
-    "django.orm.pre.migrate",
-    "django.orm.post.migrate",
+    "django.orm.pre_init",
+    "django.orm.post_init",
+    "django.orm.pre_save",
+    "django.orm.post_save",
+    "django.orm.m2m_change",
+    "django.orm.pre_delete",
+    "django.orm.post_delete",
+    "django.orm.pre_migrate",
+    "django.orm.post_migrate",
 )
 
 
@@ -75,19 +75,19 @@ class MockServerRequestHandler(BaseHTTPRequestHandler):
 
 
 def check_expected_kwargs(event_type, kwargs):
-    if event_type == "django.orm.pre.init":
+    if event_type == "django.orm.pre_init":
         assert len(kwargs) == 2 and all(k in kwargs for k in ("args", "kwargs"))
-    elif event_type == "django.orm.post.init":
+    elif event_type == "django.orm.post_init":
         assert len(kwargs) == 0
-    elif event_type == "django.orm.pre.save":
+    elif event_type == "django.orm.pre_save":
         assert len(kwargs) == 3 and all(k in kwargs for k in ("update_fields", "raw", "using"))
-    elif event_type == "django.orm.post.save":
+    elif event_type == "django.orm.post_save":
         assert len(kwargs) == 4 and all(k in kwargs for k in ("created", "update_fields", "raw", "using"))
-    elif event_type in ("django.orm.pre.delete", "django.orm.post.delete"):
+    elif event_type in ("django.orm.pre_delete", "django.orm.post_delete"):
         assert len(kwargs) == 1 and "using" in kwargs
-    elif event_type == "django.orm.m2m.change":
+    elif event_type == "django.orm.m2m_change":
         assert len(kwargs) == 5 and all(k in kwargs for k in ("action", "reverse", "model", "pk_set", "using"))
-    elif event_type in ("django.orm.pre.migrate", "django.orm.post.migrate"):
+    elif event_type in ("django.orm.pre_migrate", "django.orm.post_migrate"):
         assert len(kwargs) == 6 and all(k in kwargs for k in ("app_config", "verbosity", "interactive", "using",
                                                               "apps", "plan"))
 
@@ -109,7 +109,6 @@ def get_free_port():
 )
 class SourceTestCase(TestCase):
     def setUp(self):
-        pass
         self.mock_server_port = get_free_port()
         self.mock_server = HTTPServer(('localhost', self.mock_server_port), MockServerRequestHandler)
         self.mock_server_thread = Thread(target=self.mock_server.serve_forever)
