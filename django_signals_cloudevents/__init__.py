@@ -11,7 +11,6 @@ from cloudevents.sdk import marshaller
 from cloudevents.sdk.converters import binary
 from cloudevents.sdk.event import v1
 import os
-from django.conf import settings
 
 
 def _get_event_type_from_signal(signal):
@@ -49,11 +48,31 @@ def _get_instance_dict(instance):
     return instance_dict
 
 
+def _handle_cloudevent(event):
+
+    from django.conf import settings
+    cb = settings.CLOUDEVENTS_HANDLER
+    if cb is not None:
+        if callable(cb):
+            cb(event)
+        elif isinstance(cb, str):
+            import importlib
+            mod_name, func_name = cb.rsplit('.', 1)
+            mod = importlib.import_module(mod_name)
+            func = getattr(mod, func_name)
+            func(event)
+
+
 def send_cloudevent(sender, **kwargs):
+
+    event = get_cloudevent_from_signal(sender, **kwargs)
+    _handle_cloudevent(event)
+
+
+def default_handler(event):
+    from django.conf import settings
     sink_url = os.environ.get(settings.CLOUDEVENTS_ENV["SINK_VAR"])
     if sink_url is not None:
-        event = get_cloudevent_from_signal(sender, **kwargs)
-
         m = marshaller.NewHTTPMarshaller([binary.NewBinaryHTTPCloudEventConverter()])
         headers, body = m.ToRequest(event, converters.TypeBinary, json.dumps)
 
@@ -65,6 +84,8 @@ def send_cloudevent(sender, **kwargs):
 
 
 def get_cloudevent_from_signal(sender, **kwargs):
+
+    from django.conf import settings
     event_type = _get_event_type_from_signal(kwargs.pop("signal"))
     obj_meta = sender._meta
     app = obj_meta.app_label

@@ -4,7 +4,7 @@ import json
 from django.db.models.signals import *
 from django.test import TestCase, override_settings
 
-from django_signals_cloudevents import send_cloudevent
+from django_signals_cloudevents import send_cloudevent, default_handler
 import os
 
 from django_fake_model import models as f
@@ -68,6 +68,8 @@ class MockServerRequestHandler(BaseHTTPRequestHandler):
 
         assert event_data["db_table"] == FakeSourceModel._meta.db_table
 
+        assert event_data["test_env"] # check callback execution
+
         check_expected_kwargs(event_type, event_data["signal_kwargs"])
         self.send_response(requests.codes.ok)
         self.end_headers()
@@ -92,7 +94,6 @@ def check_expected_kwargs(event_type, kwargs):
                                                               "apps", "plan"))
 
 
-
 def get_free_port():
     s = socket.socket(socket.AF_INET, type=socket.SOCK_STREAM)
     s.bind(('localhost', 0))
@@ -101,11 +102,19 @@ def get_free_port():
     return port
 
 
+def test_events_handler(event):
+    data = event.Data()
+    data["test_env"] = True
+    event.SetData(data)
+    default_handler(event)
+
+
 @override_settings(
     CLOUDEVENTS_ENV={
         "SINK_VAR": "MOCK_SINK",
-        "SOURCE_VAR": "TEST_SOURCE"
-    }
+        "SOURCE_VAR": "TEST_SOURCE",
+    },
+    CLOUDEVENTS_HANDLER=test_events_handler
 )
 class SourceTestCase(TestCase):
     def setUp(self):
