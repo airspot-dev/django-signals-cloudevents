@@ -29,12 +29,10 @@ Quick start
     As said previously, by default this app is configured to be used with a SinkBinding and get sink url from the environment variable K_SINK, that indicates to which url events will be dispatched, and the source name from K_SOURCE.
     It is possible to override the chosen env variable in your project settings, here is the default configuration::
 
-    ::
-
-        CLOUDEVENTS_ENV = {
-            "SINK_VAR": "K_SINK",
-            "SOURCE_VAR": "K_SOURCE"
-        }
+    CLOUDEVENTS_ENV = {
+        "SINK_VAR": "K_SINK",
+        "SOURCE_VAR": "K_SOURCE"
+    }
 
     Let's see how it works.
 
