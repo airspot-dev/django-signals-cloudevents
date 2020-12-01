@@ -169,10 +169,12 @@ Quick start
             future = publisher.publish(topic_path, data=data, **attrs)
             logger.info(future.result())
 
-    # callable defined in settings
+    ::
 
-    CLOUDEVENTS_HANDLER = pubsub_handler
+        # callable defined in settings
 
-    # callable defined in a module
+        CLOUDEVENTS_HANDLER = pubsub_handler
 
-    CLOUDEVENTS_HANDLER = "my_module.pubsub_handler"
+        # callable defined in a module
+
+        CLOUDEVENTS_HANDLER = "my_module.pubsub_handler"
