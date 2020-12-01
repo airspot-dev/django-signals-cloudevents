@@ -3,4 +3,4 @@ CLOUDEVENTS_ENV = {
     "SOURCE_VAR": "K_SOURCE"
 }
 
-CLOUDEVENTS_HANDLER = "django_singals_cloudevents.default_handler"
+CLOUDEVENTS_HANDLER = "django_signals_cloudevents.default_handler"
